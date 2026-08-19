@@ -1,0 +1,191 @@
+openapi: 3.1.0
+info:
+  title: report-service
+  description: "Reporte general por cliente en un intervalo (cuentas/creditos/tarjetas\
+    \ con sus movimientos) y ultimos movimientos de tarjeta, sin base propia."
+  version: v1
+servers:
+- url: http://localhost:8085
+  description: Generated server url
+paths:
+  /reports/customers/{customerId}:
+    get:
+      tags:
+      - report-controller
+      operationId: customerReport
+      parameters:
+      - name: customerId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: from
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+      - name: to
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date-time
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CustomerReportResponse"
+  /reports/cards/{cardId}/last-movements:
+    get:
+      tags:
+      - report-controller
+      operationId: lastCardMovements
+      parameters:
+      - name: cardId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CardLastMovementsResponse"
+components:
+  schemas:
+    AccountInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        accountType:
+          type: string
+        balance:
+          type: number
+    AccountMovementInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        amount:
+          type: number
+        balanceAfter:
+          type: number
+        timestamp:
+          type: string
+          format: date-time
+        description:
+          type: string
+        counterpartyAccountId:
+          type: string
+    AccountReportEntry:
+      type: object
+      properties:
+        account:
+          $ref: "#/components/schemas/AccountInfo"
+        movements:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccountMovementInfo"
+    CardInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        creditLimit:
+          type: number
+        usedAmount:
+          type: number
+    CardMovementInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        amount:
+          type: number
+        usedAmountAfter:
+          type: number
+        timestamp:
+          type: string
+          format: date-time
+    CardReportEntry:
+      type: object
+      properties:
+        card:
+          $ref: "#/components/schemas/CardInfo"
+        movements:
+          type: array
+          items:
+            $ref: "#/components/schemas/CardMovementInfo"
+    CreditInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        totalAmount:
+          type: number
+        status:
+          type: string
+    CreditPaymentInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        installmentNumber:
+          type: integer
+          format: int32
+        amount:
+          type: number
+        timestamp:
+          type: string
+          format: date-time
+    CreditReportEntry:
+      type: object
+      properties:
+        credit:
+          $ref: "#/components/schemas/CreditInfo"
+        payments:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreditPaymentInfo"
+    CustomerReportResponse:
+      type: object
+      properties:
+        customerId:
+          type: string
+        from:
+          type: string
+          format: date-time
+        to:
+          type: string
+          format: date-time
+        accounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccountReportEntry"
+        credits:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreditReportEntry"
+        cards:
+          type: array
+          items:
+            $ref: "#/components/schemas/CardReportEntry"
+    CardLastMovementsResponse:
+      type: object
+      properties:
+        cardId:
+          type: string
+        movements:
+          type: array
+          items:
+            $ref: "#/components/schemas/CardMovementInfo"
